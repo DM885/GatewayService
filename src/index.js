@@ -1,17 +1,30 @@
 import rapid from "@ovcina/rapidriver";
-import {host, getTokenData} from "./helpers.js";
+import express from "express";
+import {Rapid, host} from "./helpers.js";
 
-// Example
-export async function ping(msg){
-    const isLoggedIn = await getTokenData(msg.token);
+const PORT = 8080;
+const app = express();
+const sessionID = 10;
 
-    rapid.publish(host, "pong", {
-        check: isLoggedIn ? true : false,
-        sessionID: msg.sessionID,
+app.use(express.urlencoded({ extended: true }));
+
+app.post('/login', async (req, res) => {
+    let ret = {
+        error: true,
+    };
+    const resp = await Rapid.publish("ping", "pong", {
+        username: req.body.username ?? "",
+        password: req.body.password ?? "",
+        sessionID,
     });
-}
+    if(resp)
+    {
+        console.log("Got something back", resp);
+        resp.error = false;
+    }
 
-if(process.env.RAPID)
-{
-    rapid.subscribe(host, [{river: "template", event: "ping", work: ping}]);
-}
+    res.send(ret);
+});
+
+app.listen(PORT);
+console.log("Listening on", PORT);

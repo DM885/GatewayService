@@ -36,3 +36,47 @@ if(process.env.mysqlHost)
 export async function query(stmt, WHERE = []) {
     return new Promise(r => connection.query(stmt, WHERE, (err, results) => r(err ? false : results)));
 }
+
+
+/**
+ * 
+ */
+export class Rapid {
+    static _listeners = {};
+    static _promises = {};
+
+    static publish(sendEvent, event, data)
+    {
+        return new Promise(r => {
+            if(!this._listeners[event])
+            {
+                this._listeners[event] = 1;
+                rapid.subscribe(host, [
+                    {river: "gateway-listener", event, work: msg => this.resolvePromise(event, msg.sessionID, msg)}
+                ]);
+            }
+            this.addPromise(event, data.sessionID, r);
+
+            rapid.publish(host, sendEvent, data);
+        });
+    }
+
+    static addPromise(event, sessionID, promiseFunc)
+    {
+        const key = `${event}_${sessionID}`;
+        if(this._promises[key])
+        {
+            this._promises[key](false);
+        }
+        this._promises[key] = promiseFunc;
+    }
+
+    static resolvePromise(event, sessionID, data)
+    {
+        const promise = this._promises[`${event}_${sessionID}`];
+        if(promise)
+        {
+            promise(data);
+        }
+    }
+}
