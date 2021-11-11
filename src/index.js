@@ -1,30 +1,29 @@
-import rapid from "@ovcina/rapidriver";
 import express from "express";
-import {Rapid, host} from "./helpers.js";
+import uid from "uid-safe";
+import cookieParser from "cookie-parser";
+
+import routes from "./routes/index.js";
 
 const PORT = 8080;
 const app = express();
-const sessionID = 10;
 
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
-app.post('/login', async (req, res) => {
-    let ret = {
-        error: true,
-    };
-    const resp = await Rapid.publish("ping", "pong", {
-        username: req.body.username ?? "",
-        password: req.body.password ?? "",
-        sessionID,
-    });
-    if(resp)
+// Session ID middleware
+app.use(async (req, res, next) => {
+    let token = req.cookies.session;
+    if(!token)
     {
-        console.log("Got something back", resp);
-        resp.error = false;
+        token = await uid(18);
+        // SET COOKIE
     }
-
-    res.send(ret);
+    res.locals.sessionID = token;
+    next();
 });
+
+// Setup routes
+routes.forEach(route => app[route.type](route.path, route.callback));
 
 app.listen(PORT);
 console.log("Listening on", PORT);

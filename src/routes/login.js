@@ -1,13 +1,21 @@
-export default async function (req, res) {
-    const resp = await Rapid.publish("ping", "pong", {
-        username: req.body.username ?? "",
-        password: req.body.password ?? "",
-        sessionID,
-    });
-    console.log("Got something back", resp);
-
-
-    res.send({
-        error: false
-    });
-}
+export default {
+    type: "post",
+    path: "/login",
+    callback: async (req, res) => {
+        let ret = {
+            error: true,
+        };
+        const resp = await Rapid.publish("signIn", "signIn-response", {
+            username: req.body.username ?? "",
+            password: req.body.password ?? "",
+            sessionID: res.locals.sessionID,
+        });
+        if(resp && resp.token)
+        {
+            resp.accessToken = resp.token;
+            resp.error = false;
+        }
+    
+        res.send(ret);
+    }
+};

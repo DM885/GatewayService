@@ -1,11 +1,7 @@
 import loginFunc from "./login.js";
-import {routeWrapper} from "../helpers.js"; 
+import pingFunc from "./ping.js";
 
-export default {
-    "GET": {
-        
-    },
-    "POST": {
-        "/login": routeWrapper(loginFunc),
-    }
-};
+export default [
+    pingFunc,
+    loginFunc,
+];
