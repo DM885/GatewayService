@@ -1,4 +1,4 @@
-// Test with sample microservice
+// Test with Template-microservice
 export default {
     type: "get",
     path: "/ping",
@@ -6,7 +6,7 @@ export default {
         let ret = {
             error: true,
         };
-        
+
         const resp = await Rapid.publish("ping", "pong", {
             token: "NOT-VALID",
             sessionID: res.locals.sessionID,

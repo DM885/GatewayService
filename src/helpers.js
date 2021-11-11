@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 import mysql from "mysql";
-
+import rapid from "@ovcina/rapidriver";
 
 const SECRET = process.env.SECRET ?? `3(?<,t2mZxj$5JT47naQFTXwqNWP#W>'*Kr!X!(_M3N.u8v}%N/JYGHC.Zwq.!v-`;  // JWT secret
 export const host = process.env.riverUrl ?? `amqp://localhost`;  // RabbitMQ url
@@ -38,29 +38,44 @@ export async function query(stmt, WHERE = []) {
 }
 
 /**
- * 
+ * Handles the subcribers for the Rapiddriver library.
  */
 export class Rapid {
     static _listeners = {};
     static _promises = {};
 
+    /**
+     * Sends a @sendEvent event to the RabitMQ and waits for the given @event response.
+     * @param string sendEvent 
+     * @param string event 
+     * @param {*} data 
+     * @returns Promise<RetData|false>
+     */
     static publish(sendEvent, event, data)
     {
         return new Promise(r => {
             if(!this._listeners[event])
             {
                 this._listeners[event] = 1;
-                rapid.subscribe(host, [
-                    {river: "gateway-listener", event, work: msg => this.resolvePromise(event, msg.sessionID, msg)}
-                ]);
+                rapid.subscribe(host, [{
+                    river: "gateway-listener", 
+                    event, 
+                    work: msg => this._resolvePromise(event, msg.sessionID, msg)
+                }]);
             }
-            this.addPromise(event, data.sessionID, r);
+            this._addPromise(event, data.sessionID, r);
 
             rapid.publish(host, sendEvent, data);
         });
     }
 
-    static addPromise(event, sessionID, promiseFunc)
+    /**
+     * Adds a promise for a given event and session.
+     * @param string event 
+     * @param string sessionID 
+     * @param {*} promiseFunc 
+     */
+    static _addPromise(event, sessionID, promiseFunc)
     {
         const key = `${event}_${sessionID}`;
         if(this._promises[key])
@@ -70,7 +85,13 @@ export class Rapid {
         this._promises[key] = promiseFunc;
     }
 
-    static resolvePromise(event, sessionID, data)
+    /**
+     * Resolves a promise for a given event and session.
+     * @param string event 
+     * @param string sessionID 
+     * @param {*} data 
+     */
+    static _resolvePromise(event, sessionID, data)
     {
         const promise = this._promises[`${event}_${sessionID}`];
         if(promise)
