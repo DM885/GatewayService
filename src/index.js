@@ -16,7 +16,7 @@ app.use(async (req, res, next) => {
     if(!token)
     {
         token = await uid(18);
-        // SET COOKIE
+        res.cookie('session', token, {maxAge: 900000, httpOnly: true});
     }
     res.locals.sessionID = token;
     next();
