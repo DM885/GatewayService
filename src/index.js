@@ -26,7 +26,7 @@ app.use(async (req, res, next) => {
 // Auth middleware
 app.use((req, res, next) => {
     let token = req.headers.Authorization;
-    if(token)
+    if(token && token.includes("Bearer "))
     {
         const temp = token.split("Bearer ");
         res.locals.jwtToken = temp[1];
