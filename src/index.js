@@ -3,6 +3,7 @@ import uid from "uid-safe";
 import cookieParser from "cookie-parser";
 
 import routes from "./routes/index.js";
+import {getTokenData} from "./helpers.js";
 
 const PORT = 8080;
 const app = express();
@@ -22,8 +23,26 @@ app.use(async (req, res, next) => {
     next();
 });
 
+// Auth middleware
+app.use((req, res, next) => {
+    let token = req.headers.Authorization;
+    if(token)
+    {
+        const temp = token.split("Bearer ");
+        res.locals.jwtToken = temp[1];
+    }
+    next();
+});
+
 // Setup routes
-routes.forEach(route => app[route.type](route.path, route.callback));
+routes.forEach(route => app[route.type](route.path, async (req, res) => {
+    if(!route.auth || await getTokenData(res.locals.jwtToken))
+    {   
+        route.callback(req, res);
+    }else{ // Not authorized
+        res.status(401).send("Invalid Token");
+    }
+}));
 
 app.listen(PORT);
 console.log("Listening on", PORT);

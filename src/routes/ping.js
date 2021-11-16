@@ -2,6 +2,7 @@
 export default {
     type: "get",
     path: "/ping",
+    auth: false,
     callback: async (req, res) => {
         let ret = {
             error: true,

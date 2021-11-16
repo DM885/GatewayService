@@ -1,6 +1,7 @@
 export default {
     type: "post",
     path: "/login",
+    auth: false,
     callback: async (req, res) => {
         let ret = {
             error: true,
