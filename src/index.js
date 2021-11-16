@@ -40,7 +40,7 @@ routes.forEach(route => app[route.type](route.path, async (req, res) => {
     {   
         route.callback(req, res);
     }else{ // Not authorized
-        res.status(401).send("Invalid Token");
+        res.status(401).send("Unauthorized");
     }
 }));
 
