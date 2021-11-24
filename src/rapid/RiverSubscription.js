@@ -39,7 +39,7 @@ export default class RiverSubscription {
     }
     
     this._callbacks[session] = (data) => {
-      this._callbacks[session] = false;
+      delete this._callbacks[session];
       callback(data);
     };
   }
