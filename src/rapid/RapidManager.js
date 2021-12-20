@@ -18,7 +18,9 @@ export default class RapidManager {
   _log(callback, userId) {
     return data => {
       data.userId = userId;
-      rapid.publish(this.#host, 'logIt', data);
+      if(userId >= 0){
+        rapid.publish(this.#host, 'logIt', data);
+      }
       callback(data);
     };
   }
